@@ -1,0 +1,19 @@
+.dwarf-winnings-report .key-item .square,
+.dwarf-winnings-report .barchart .bar {
+  cursor: pointer;
+  fill-opacity: 0.25;
+}
+
+.dwarf-winnings-report .key-item:hover .square,
+.dwarf-winnings-report .barchart .bar:hover {
+  fill-opacity: 0.75;
+}
+
+.dwarf-winnings-report .key-item.selected .square,
+.dwarf-winnings-report .barchart .bar.selected {
+  fill-opacity: 1.0;
+}
+
+.dwarf-winnings-report .key-item .label {
+	pointer-events: none;
+}

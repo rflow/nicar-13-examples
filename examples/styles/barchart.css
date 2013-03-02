@@ -1,0 +1,38 @@
+.barchart {
+  height: 350px;
+}
+
+.chart .bar.category-0 {
+  fill: rgb(0, 157, 220);
+}
+
+.chart .bar.category-1 {
+  fill: rgb(224, 58, 62);
+}
+
+.chart .bar.category-2 {
+  fill: rgb(253, 184, 39);
+}
+
+.chart .bar.category-3 {
+  fill: rgb(150, 61, 151);
+}
+
+.chart .bar.category-4 {
+  fill: rgb(148, 50, 255);
+}
+
+.chart .bar.category-5 {
+  fill: rgb(97, 187, 70);
+}
+
+.chart .bar.category-6 {
+  fill: rgb(245, 130, 31);
+}   
+
+.chart .label {
+  font-family: sans-serif;
+  font-size: 12px;
+  text-transform: uppercase;
+  height: 25px;
+}

@@ -1,0 +1,108 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>NICAR 2013 > Reusable components</title>
+</head>
+<body>
+	<h2>NICAR 2013 - Reusable Components</h2>
+	<h3>step #1 - the humble bar chart</h3>
+
+  <!-- page content is added here -->
+  <div class="container"></div>
+  
+  <!-- library code -->
+	<script type="text/javascript" src="js/libs/jquery-1.8.3.min.js"></script>
+	<script type="text/javascript" src="js/libs/miso.ds.deps.ie.0.4.1.js"></script>
+	<script type="text/javascript" src="js/libs/d3.min.js"></script>
+
+  <!-- main code -->
+	<script>
+		// define some layout constants
+		var LABEL_HEIGHT = 25,
+				CONTAINER_HEIGHT = 350;
+
+		// grab a reference to the DOM object which will host our chart
+	  var container = $(".container");
+		
+		// create a new Dataset in which to load our dummy data
+		var dataset = new Miso.Dataset({
+		  url : "data/dwarf_poker_winnings.csv",
+		  delimiter : ",",
+		  columns : [
+		    { name : "Date", type : "time", format : "YYYY-MM-DDTHH:mm:ss Z" },
+		    { name : "Dwarf", type : "string" },
+		    { name : "Winnings", type : "number" },
+		  ]
+		});	
+
+		// start loading CSV, passing in success and failure handlers
+		dataset.fetch({
+			success: function(){
+				buildGraph();
+			},
+			error: function(e){
+				alert(e);
+			}
+		});
+
+		// routine that transforms data into appropriate format for d3, 
+		// calculates the size and scales, then builds an SVG bar chart
+		function buildGraph(){
+			// group raw data by category in order to calculate totals
+			var winningsByDwarf = dataset.groupBy("Dwarf", ["Winnings"]);
+
+			// build aggregate data into an array of objects for d3
+			var chartData = [];
+
+			winningsByDwarf.each(function(row, rowIndex) {
+				chartData.push({ name: row["Dwarf"], value: row["Winnings"] });
+			});
+
+			// calculate dimensions of the chart and its constituent parts
+			var width = container.width(),
+			    height = CONTAINER_HEIGHT,
+			    barHeight = height - LABEL_HEIGHT;
+			
+			// create x scale (maps ordinal categories to bar positions)
+			// and y scale (maps values to bar heights)
+			var xScale = d3.scale.ordinal().rangeBands([0, width], 0.1, 0),
+			    yScale = d3.scale.linear().range([0, barHeight]);
+
+			// set the input domain for each scale, according to the data
+			xScale.domain(winningsByDwarf.column("Dwarf").data);
+			yScale.domain([0, winningsByDwarf.max("Winnings")]);
+			
+			// create svg object to hold the chart 
+			var svg = d3.select(".container").append("svg")
+			    .attr("width", width)
+			    .attr("height", height);
+			 
+			// create chart object
+			var chart = svg.append("g")
+					.attr("class", "chart");
+
+			// add bars for each itemegory, sized according to their totals
+			chart.selectAll("rect")
+				   .data(chartData)
+				   .enter()
+				   .append("rect")
+				   .attr("x", function(item) { return xScale(item.name) })
+				   .attr("y", function(item) { return barHeight - yScale(item.value) })
+				   .attr("width", xScale.rangeBand())
+				   .attr("height", function(item) { return yScale(item.value) })
+				   .attr("fill", "grey");
+
+			// add labels for each itemegory, positioned underneath the appropriate bars
+			chart.selectAll("text")
+				   .data(chartData)
+				   .enter()
+				   .append("text")
+				   .text(function(item) { return item.name; })
+				   .attr("text-anchor", "middle")
+				   .attr("x", function(item) { return xScale(item.name) + xScale.rangeBand()/2; })
+				   .attr("y", barHeight + 20);
+	  }
+	</script>
+</body>
+</html>

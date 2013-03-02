@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>NICAR 2013 > Reusable components</title>
+	<link rel="stylesheet" type="text/css" href="styles/example.css" media="screen" /> 
+	<link rel="stylesheet" type="text/css" href="styles/report.css" media="screen" /> 
+</head>
+<body>
+	<h2>NICAR 2013 - Reusable Components</h2>
+	<h3>step #5 - use multiple instances of component in the same report</h3>
+
+	<!-- page content will be added here -->
+  <div class="container"></div>
+  
+  <!-- library code -->
+	<script type="text/javascript" src="js/libs/jquery-1.8.3.min.js"></script>
+	<script type="text/javascript" src="js/libs/miso.ds.deps.ie.0.4.1.js"></script>
+	<script type="text/javascript" src="js/libs/d3.min.js"></script>
+	<script type="text/javascript" src="js/libs/backbone-min.js"></script>
+  
+	<!-- models -->
+	<script type="text/javascript" src="js/models/DwarfWinnings.js"></script>
+
+  <!-- components -->
+	<script type="text/javascript" src="js/views/Barchart.js"></script>
+	<script type="text/javascript" src="js/views/BarKey.js"></script>
+	<script type="text/javascript" src="js/views/DwarfWinningsChart.js"></script>
+	<script type="text/javascript" src="js/views/DwarfWinningsReport.js"></script>
+
+  <!-- main code -->
+	<script>
+		var dataset = new Miso.Dataset({
+		  url : "data/dwarf_poker_winnings.csv",
+		  delimiter : ",",
+		  columns : [
+		    { name : "Date", type : "time", format : "YYYY-MM-DDTHH:mm:ss Z" },
+		    { name : "Dwarf", type : "string" },
+		    { name : "Winnings", type : "number" },
+		  ]
+		});
+
+		dataset.fetch({
+			success: function(){			
+				// instantiate our dwarf winnings model, based on our dataset
+				var model = new DwarfWinnings({ data: dataset, months: moment.months });
+
+				// instantiate our report component, passing in the model	
+				var report = new DwarfWinningsReport({	model: model });
+
+				// append report to container and perform initial render
+				report.$el.appendTo($(".container"));
+				report.render();
+
+				// trigger an introductory transition 
+			  report.reveal();
+
+			  // enable responsive resizing
+				$(window).resize(_.debounce(report.render, 10));
+			},
+			error: function(e){
+				alert(e);
+			}
+		});
+	</script>
+</body>
+</html>

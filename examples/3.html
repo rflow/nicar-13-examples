@@ -1,0 +1,146 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>NICAR 2013 > Reusable components</title>
+	<link rel="stylesheet" type="text/css" href="styles/example.css" media="screen" /> 
+	<link rel="stylesheet" type="text/css" href="styles/barchart.css" media="screen" /> 
+</head>
+<body>
+	<h2>NICAR 2013 - Reusable Components</h2>
+	<h3>step #3 - separate (and parameterize) rendering code</h3>
+
+  <div class="container">
+  	<!-- page content will be added here -->
+  </div>
+  
+  <!-- library code -->
+	<script type="text/javascript" src="js/libs/jquery-1.8.3.min.js"></script>
+	<script type="text/javascript" src="js/libs/miso.ds.deps.ie.0.4.1.js"></script>
+	<script type="text/javascript" src="js/libs/d3.min.js"></script>
+
+  <!-- main code -->
+	<script>
+		// grab a reference to the DOM object which will host our chart
+	  var container = $(".container");
+
+	  // create a DOM element in which to build our chart
+	  var chart = $("<div class='barchart'></div>").appendTo(container);
+
+		// create an array that will hold our chart data
+		var chartData = [];
+
+		// create a new Dataset in which to load our dummy data
+		var dataset = new Miso.Dataset({
+		  url : "data/dwarf_poker_winnings.csv",
+		  delimiter : ",",
+		  columns : [
+		    { name : "Date", type : "time", format : "YYYY-MM-DDTHH:mm:ss Z" },
+		    { name : "Dwarf", type : "string" },
+		    { name : "Winnings", type : "number" },
+		  ]
+		});
+	
+ 		// set the opacity of the container to 0 whilst we're loading
+		container.fadeTo(0, 0);		
+
+		// start loading CSV, passing in success and failure handlers
+		dataset.fetch({
+			success: function(){
+				var winningsByDwarf = dataset.groupBy("Dwarf", ["Winnings"]);
+
+				winningsByDwarf.each(function(row, rowIndex) {
+					chartData.push({ name: row["Dwarf"], value: row["Winnings"] });
+				});
+				
+				// draw chart for the first time
+				renderChart();
+
+				// setup a debounced resize handler to repaint chart on window resize
+				$(window).resize(_.debounce(renderChart, 10));
+
+			  container.fadeTo("slow", 1);
+			},
+			error: function(e){
+				alert(e);
+			}
+		});
+
+		// calc size & scales, clear container then draw the chart
+		function renderChart(){
+			var size = measureDimensions(chart);
+			var scales = calculateScales(size, chartData);
+
+			chart.empty();
+			drawChart(chart, chartData, size, scales);
+		}
+
+		// measure dimensions of the chart
+		function measureDimensions(container){
+			var results = {};
+			var dummyLabel = $("<span>LABEL TEXT</span>").hide().appendTo(container);
+
+			// read width and height from container
+			results.width = container.width();
+			results.height = container.height();
+
+			// calc label height based on dummy label and then set bar height accordingly
+			results.labelHeight = dummyLabel.height();
+			results.barHeight = results.height - results.labelHeight;
+			results.labelOffset = results.barHeight + results.labelHeight;
+			
+			// clean up dummy label from DOM
+			dummyLabel.remove();
+
+			return results;
+		}
+
+		// calculate scales for the chart
+		function calculateScales(dimensions, data){
+			var scales = {}
+
+			// create x scale (maps ordinal item categories to bar positions)
+			scales.xAxis = d3.scale.ordinal().rangeBands([0, dimensions.width], 0.1, 0),
+			
+			// create y scale (maps values to bar heights)
+			scales.yAxis = d3.scale.linear().range([0, dimensions.barHeight]);
+
+			// set the input domain for each scale, according to the data
+			scales.xAxis.domain(_.pluck(data, "name"));
+			scales.yAxis.domain([0, d3.max(_.pluck(data, "value"))]);
+
+			return scales;
+		}
+
+		// draw the chart into an svg object using d3
+		function drawChart(container, data, size, scales){
+			var svg = d3.select(container.get(0)).append("svg")
+			    .attr("width", size.width)
+			    .attr("height", size.height);
+			
+			var chart = svg.append("g")
+					.attr("class", "chart");
+
+			chart.selectAll(".bar")
+				   .data(data)
+				   .enter()
+				   .append("rect")
+				   .attr("class", function(item, index) { return "bar category-" + index })
+				   .attr("x", function(item) { return scales.xAxis(item.name) })
+				   .attr("y", function(item) { return size.barHeight - scales.yAxis(item.value) })
+				   .attr("width", scales.xAxis.rangeBand())
+				   .attr("height", function(item) { return scales.yAxis(item.value) });
+
+			chart.selectAll(".label")
+				   .data(data)
+				   .enter()
+				   .append("text")
+				   .attr("class", "label")
+				   .text(function(item) { return item.name; })
+				   .attr("text-anchor", "middle")
+				   .attr("x", function(item) { return scales.xAxis(item.name) + scales.xAxis.rangeBand()/2; })
+				   .attr("y", size.labelOffset);
+	  }
+	</script>
+</body>
+</html>

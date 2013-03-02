@@ -1,0 +1,173 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>NICAR 2013 > Reusable components</title>
+	<style type="text/css">
+		
+		h2, h3 {
+			font-family: sans-serif;
+			text-align: center;
+		}
+
+		h3 {
+			margin-top: -10px;			
+			color: #999	;
+		}
+
+		.container {
+			background-color: #ffffff;
+			padding: 50px;
+			height: 350px;
+		}
+
+		.chart .bar.category-0 {
+			fill: rgb(0, 157, 220);
+		}
+
+		.chart .bar.category-1 {
+			fill: rgb(224, 58, 62);
+		}
+
+		.chart .bar.category-2 {
+			fill: rgb(253, 184, 39);
+		}
+
+		.chart .bar.category-3 {
+			fill: rgb(150, 61, 151);
+		}
+
+		.chart .bar.category-4 {
+			fill: rgb(148, 50, 255);
+		}
+
+		.chart .bar.category-5 {
+			fill: rgb(97, 187, 70);
+		}
+
+		.chart .bar.category-6 {
+			fill: rgb(245, 130, 31);
+		}		
+
+		.chart .label {
+			font-family: sans-serif;
+			font-size: 12px;
+			text-transform: uppercase;
+			height: 25px;		
+		}
+
+	</style>  
+</head>
+<body>
+	<h2>NICAR 2013 - Reusable Components</h2>
+	<h3>step #2 - add/externalize styling</h3>
+
+  <!-- page content is added here -->
+  <div class="container"></div>
+  
+  <!-- library code -->
+	<script type="text/javascript" src="js/libs/jquery-1.8.3.min.js"></script>
+	<script type="text/javascript" src="js/libs/miso.ds.deps.ie.0.4.1.js"></script>
+	<script type="text/javascript" src="js/libs/d3.min.js"></script>
+
+  <!-- main code -->
+	<script>
+		// grab a reference to the DOM object which will host our chart
+	  var container = $(".container");
+		
+		// create a new Dataset in which to load our dummy data
+		var dataset = new Miso.Dataset({
+		  url : "data/dwarf_poker_winnings.csv",
+		  delimiter : ",",
+		  columns : [
+		    { name : "Date", type : "time", format : "YYYY-MM-DDTHH:mm:ss Z" },
+		    { name : "Dwarf", type : "string" },
+		    { name : "Winnings", type : "number" },
+		  ]
+		});
+
+ 		// set the opacity of the container to 0 whilst we're loading
+		// n.b. removing it from the display list makes it impossible to calc width & height
+		container.fadeTo(0, 0);		
+
+		// start loading CSV, passing in success and failure handlers
+		dataset.fetch({
+			success: function(){
+				// build the graph
+				buildGraph();
+
+				// fade in our container and display it for the world to see
+			  container.fadeTo("slow", 1);
+			},
+			error: function(e){
+				alert(e);
+			}
+		});
+
+		// routine that transforms data into appropriate format for d3, 
+		// calculates the size and scales, then builds an SVG bar chart
+		function buildGraph(){
+			// group raw data by category in order to calculate totals
+			var winningsByDwarf = dataset.groupBy("Dwarf", ["Winnings"]);
+
+			// build aggregate data into an array of objects for d3
+			var chartData = [];
+
+			winningsByDwarf.each(function(row, rowIndex) {
+				chartData.push({ name: row["Dwarf"], value: row["Winnings"] });
+			});
+
+			// create a dummy label in order to measure label height
+			var dummyLabel = $("<span>LABEL TEXT</span>").hide().appendTo(container);
+
+			// calculate dimensions of the chart and its constituent parts
+			var width = container.width(),
+			    height = container.height(),
+			    labelHeight = dummyLabel.height();
+			    barHeight = height - labelHeight;
+			
+			dummyLabel.remove();
+
+			// create x scale (maps ordinal categories to bar positions)
+			// and y scale (maps values to bar heights)
+			var xScale = d3.scale.ordinal().rangeBands([0, width], 0.1, 0),
+			    yScale = d3.scale.linear().range([0, barHeight]);
+
+			// set the input domain for each scale, according to the data
+			xScale.domain(winningsByDwarf.column("Dwarf").data);
+			yScale.domain([0, winningsByDwarf.max("Winnings")]);
+			
+			// create svg object to hold the chart 
+			var svg = d3.select(".container").append("svg")
+			    .attr("width", width)
+			    .attr("height", height);
+			 
+			// create chart object
+			var chart = svg.append("g")
+					.attr("class", "chart");
+
+			// add bars for each itemegory, sized according to their totals
+			chart.selectAll(".bar")
+				   .data(chartData)
+				   .enter()
+				   .append("rect")
+				   .attr("class", function(item, index) { return "bar category-" + index })
+				   .attr("x", function(item) { return xScale(item.name) })
+				   .attr("y", function(item) { return barHeight - yScale(item.value) })
+				   .attr("width", xScale.rangeBand())
+				   .attr("height", function(item) { return yScale(item.value) });
+
+			// add labels for each itemegory, positioned underneath the appropriate bars
+			chart.selectAll(".label")
+				   .data(chartData)
+				   .enter()
+				   .append("text")
+				   .attr("class", "label")
+				   .text(function(item) { return item.name; })
+				   .attr("text-anchor", "middle")
+				   .attr("x", function(item) { return xScale(item.name) + xScale.rangeBand()/2; })
+				   .attr("y", barHeight + labelHeight);
+	  }
+	</script>
+</body>
+</html>

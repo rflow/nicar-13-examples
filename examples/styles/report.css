@@ -1,0 +1,92 @@
+.container {
+  background-color: #ffffff;
+  padding: 0px;
+}
+
+.dwarf-winnings-report .key {
+  height: 20px;
+  font-family: sans-serif;
+  text-transform: uppercase;
+  font-size: 10pt;
+  padding-top: 20px;
+  width: 90%;
+  padding-left: 5%;
+  padding-right: 5%;
+  color: #999;
+  clear: both;
+}
+
+/* default 4 col card layout for desktop / landscape etc */
+.dwarf-winnings-report .dwarf-winnings {
+  float: left;
+  width: 15%; 
+  margin: 1% 5% 1% 5%;
+  padding-bottom: 30px;
+  height: 150px;
+}
+
+/* 2 col card layout for portrait displays */
+@media screen and (max-width: 768px) {
+  .dwarf-winnings-report .dwarf-winnings {
+    width: 35%; 
+    margin: 3% 7.5% 2% 7.5%;
+  }
+}
+
+/* single card layout for mobile displays */
+@media screen and (max-width: 500px) {
+  .dwarf-winnings-report .dwarf-winnings {
+    width: 70%; 
+    margin: 3% 15% 2% 15%;
+  }
+
+/*  .dwarf-winnings-report .barchart .label {
+    display: none;
+  }*/
+}
+
+.dwarf-winnings-report h4 {
+  font-family: sans-serif;
+  text-transform: uppercase;
+  font-size: 11pt;
+  color: #222;
+}
+
+.dwarf-winnings-report .barchart {
+  height: 100px;
+}
+
+.dwarf-winnings-report .barchart .label {
+  font-family: sans-serif;
+  text-transform: uppercase;
+  font-size: 10pt;
+  fill: #999;
+}
+
+.category-0 {
+  fill: rgb(0, 157, 220);
+}
+
+.category-1 {
+  fill: rgb(224, 58, 62);
+}
+
+.category-2 {
+  fill: rgb(253, 184, 39);
+}
+
+.category-3 {
+  fill: rgb(150, 61, 151);
+}
+
+.category-4 {
+  fill: rgb(148, 50, 255);
+}
+
+.category-5 {
+  fill: rgb(97, 187, 70);
+}
+
+.category-6 {
+  fill: rgb(245, 130, 31);
+}   
